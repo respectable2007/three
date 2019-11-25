@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>webGL</title>
+  </head>
+  <body>
+    <canvas id='g' width='400' height='300'>
+    <script type="text/javascript" src='lib/webgl-debug.js'></script>
+    <script type="text/javascript" src='lib/webgl-utils.js'></script>
+    <script type="text/javascript" src='lib/cuon-utils.js'></script>
+    <script type="text/javascript" src='src/Three.js'></script>
+    <script type="text/javascript">
+      var three = new Three({
+        background: '0, 0, 0, 1',
+        dom: 'g'
+      }),
+      gl_points = [],
+      gl_colors = [];
+      // 鼠标点击绘点
+      three.on('mousedown', function(e){
+        var clientX = e.clientX,
+            clientY = e.clientY,
+            w = this.clientWidth,
+            h = this.clientHeight,
+            rect = this.getBoundingClientRect(),
+            x = ((clientX - rect.left) - w / 2) / (w / 2),
+            y = (h / 2 - (clientY - rect.top)) / (h / 2);
+        gl_points.push([x, y]);
+        if(x >= 0 && y >= 0) {
+          gl_colors.push([1.0, 0, 0, 1.0]);
+        } else if(x < 0 && y < 0) {
+          gl_colors.push([0, 1.0, 0, 1.0]);
+        } else {
+          gl_colors.push([1.0, 1.0, 1.0, 1.0]);
+        }
+        // 清空画布
+        three.init();
+        var i = 0,
+            lens = gl_points.length;
+        for(; i < lens; i++) {
+          three.drawPoint({
+            pos: gl_points[i],
+            color: gl_colors[i]
+          })
+        }
+      })
+    </script>
+  </body>
+</html>
