@@ -1,22 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>WebGL Boilerplate</title>
-
-    <!-- Utils webgl book -->
-    <script type="text/javascript" src="lib/cuon-matrix.js"></script>
-    <script type="text/javascript" src="lib/cuon-utils.js"></script>
-    <script type="text/javascript" src="lib/webgl-debug.js"></script>
-    <script type="text/javascript" src="lib/webgl-utils.js"></script>
-    
-    <!--Your js file -->    
-    <script type="text/javascript" src="src/code.js"></script>
-</head>
-<body onload="main()">
-    <canvas id="mycanvas" width="720" height="480"></canvas>
-</body>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>webGL</title>
+  </head>
+  <body>
+    <canvas id='g' width='400' height='300'>
+    <script type="text/javascript" src='lib/webgl-debug.js'></script>
+    <script type="text/javascript" src='lib/webgl-utils.js'></script>
+    <script type="text/javascript" src='lib/cuon-utils.js'></script>
+    <script type="text/javascript" src='src/Three.js'></script>
+    <script type="text/javascript">
+      var three = new Three({
+        background: '0, 0, 0, 1',
+        dom: 'g'
+      }),
+      gl_points = [],
+      gl_colors = [];
+      // 鼠标点击绘点
+     three.on('mousedown', function(e){
+        var clientX = e.clientX,
+            clientY = e.clientY,
+            w = this.clientWidth,
+            h = this.clientHeight,
+            rect = this.getBoundingClientRect(),
+            x = ((clientX - rect.left) - w / 2) / (w / 2),
+            y = (h / 2 - (clientY - rect.top)) / (h / 2),
+            z,
+            h;
+        // 保留并显示已点击的位置
+        gl_points.push(x, y);
+        if(x >= 0 && y >= 0) {
+          gl_colors.push([1.0, 0, 0, 1.0]);
+        } else if(x < 0 && y < 0) {
+          gl_colors.push([0, 1.0, 0, 1.0]);
+        } else {
+          gl_colors.push([1.0, 1.0, 1.0, 1.0]);
+        }
+        // 清空画布
+        three.init();
+        var i = 0,
+            lens = gl_points.length;
+        /* for(; i < lens; i++) {
+          three.drawPoint({
+            pos: gl_points[i],
+            color: gl_colors[i]
+          })
+        } */
+        three.multiPoints({
+          ps: gl_points,
+          color: gl_colors
+        });
+        // 只显示当前点击位置
+        /* if(x >= 0 && y >= 0) {
+          z = 1.0;
+          h = 0;
+        } else if(x < 0 && y < 0) {
+          z = 0;
+          h = 1.0;
+        } else {
+          z = 1.0;
+          h = 1.0;
+        }
+        three.init();
+        three.drawPoint({
+          pos: [x, y],
+          color: [z,h,0,1.0]
+        }) */
+      })
+      //一次性绘制多点
+      //three.multiPoints();
+    </script>
+  </body>
 </html>

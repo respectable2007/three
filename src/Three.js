@@ -2,10 +2,18 @@
 /**
  * 常量
  */
-const c = 'COLOR_BUFFER_BIT',
+const a = 'ARRAY_BUFFER',
+      c = 'COLOR_BUFFER_BIT',
       d = 'DEPTH_BUFFER_BIT',
+      f = 'FLOAT',
       s = 'STENCIL_BUFFER_BIT',
+      st = 'STATIC_DRAW',
       p = 'POINTS';
+/**
+ * 获取项目索引
+ * @param {Array} arr 
+ * @param {*} item 
+ */
 function findIndex(arr, item) {
   if(!arr) {
     return;
@@ -19,6 +27,36 @@ function findIndex(arr, item) {
   }
   return -1;
 }
+
+function initVertex(gl, ps) {
+  var verticles = new Float32Array(ps),
+  n = ps.length / 2,
+  buffer = gl.createBuffer(),
+  a_position,
+  a_pointsize,
+  u_fragcolor;
+  gl.bindBuffer(gl[a], buffer);
+  gl.bufferData(gl[a], verticles, gl[st]);
+  if((a_position = gl.getAttribLocation(gl.program, 'a_position')) < 0) {
+    console.log('Failed to get attribute address');
+    return -1;
+  }
+  if((a_pointsize = gl.getAttribLocation(gl.program, 'a_pointsize')) < 0) {
+    console.log('Failed to get attribute address');
+    return -1;
+  }
+  if(!(u_fragcolor = gl.getUniformLocation(gl.program, 'u_fragcolor'))) {
+    console.log('Failed to get uniform');
+    return -1;
+  }
+  gl.vertexAttribPointer(a_position, 2, gl[f], false, 0, 0);
+  gl.enableVertexAttribArray(a_position);
+  gl.vertexAttrib1f(a_pointsize, 10.0);
+  gl.uniform4f(u_fragcolor, 1.0, 0, 0, 1);//颜色未发生变换
+
+  return n;
+}
+
 function Three(opts) {
  var canvas = document.getElementById(opts.dom);
  this.canvas = canvas;
@@ -84,7 +122,7 @@ Three.prototype.fragPoint = 'precision mediump float;\n'//?精度声明
   + 'gl_FragColor = u_fragcolor;\n'
   + '}';
 
-// 绘制矩形点
+// 一次绘制一个点
 Three.prototype.drawPoint = function(ps) {
     //默认值
     var pos = ps.pos || [0,0],
@@ -95,12 +133,14 @@ Three.prototype.drawPoint = function(ps) {
     a_pointsize,
     u_fragcolor;
   if(!this.gl.program) {
+    // 初始化着色器
     isShader = initShaders(this.gl, this.vertexPoint, this.fragPoint);
     if(!isShader) {
       console.log('browser support webgl shader');
       return;
     }
   }
+  // 获取attribute变量和uniform变量存储地址
   if(!a_position) {
     a_position = this.gl.getAttribLocation(this.gl.program, 'a_position');
     if(a_position < 0) {
@@ -122,6 +162,7 @@ Three.prototype.drawPoint = function(ps) {
         return;
     }
   }
+  // 传输数据至attribute变量和uniform变量
   this.gl.vertexAttrib3f(a_position,pos[0],pos[1],0);
   this.gl.vertexAttrib1f(a_pointsize, size);
   this.gl.uniform4f(u_fragcolor,color[0], color[1], color[2], color[3]);
@@ -134,6 +175,28 @@ Three.prototype.drawPoint = function(ps) {
    */
   //调用drawArrays函数，即执行着色器
   this.gl.drawArrays(this.gl[p], 0, 1);
+}
+
+// 一次绘制多个点
+Three.prototype.multiPoints = function(data) {
+   if(!data || !data.ps) {
+     return;
+   }
+   var isShader = true,
+       n = 0;
+   if(!this.gl.program) {
+     if(!(isShader = initShaders(this.gl, this.vertexPoint, this.fragPoint))) {
+       console.log('Failed to create shaders');
+       return;
+     }
+   }  
+  //  设置绘制点位置
+   if((n = initVertex(this.gl, data.ps)) < 0) {
+     console.log('Failed to set points in buffer');
+     return;
+   }
+   this.init();
+   this.gl.drawArrays(this.gl[p], 0, n);
 }
 // 事件监听器
 Three.prototype.on = function(type, listener) {
