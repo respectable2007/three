@@ -6,9 +6,10 @@ const a = 'ARRAY_BUFFER',
       c = 'COLOR_BUFFER_BIT',
       d = 'DEPTH_BUFFER_BIT',
       f = 'FLOAT',
+      p = 'POINTS',
       s = 'STENCIL_BUFFER_BIT',
       st = 'STATIC_DRAW',
-      p = 'POINTS';
+      t = 'TRIANGLES';
 /**
  * 获取项目索引
  * @param {Array} arr 
@@ -41,17 +42,18 @@ function initVertex(gl, ps) {
     console.log('Failed to get attribute address');
     return -1;
   }
+  /* 
   if((a_pointsize = gl.getAttribLocation(gl.program, 'a_pointsize')) < 0) {
     console.log('Failed to get attribute address');
     return -1;
-  }
+  } */
   if(!(u_fragcolor = gl.getUniformLocation(gl.program, 'u_fragcolor'))) {
     console.log('Failed to get uniform');
     return -1;
   }
   gl.vertexAttribPointer(a_position, 2, gl[f], false, 0, 0);
   gl.enableVertexAttribArray(a_position);
-  gl.vertexAttrib1f(a_pointsize, 10.0);
+  /* gl.vertexAttrib1f(a_pointsize, 10.0); */
   gl.uniform4f(u_fragcolor, 1.0, 0, 0, 1);//颜色未发生变换
 
   return n;
@@ -113,6 +115,11 @@ Three.prototype.vertexPoint ='attribute vec4 a_position;\n'
 //gl_PointSize，表示点的尺寸。float数据类型
 +'gl_PointSize = a_pointsize;\n'
 +'}';
+
+Three.prototype.singlePoint = 'attribute vec4 a_position;\n'
++ 'void main(){\n'
++ 'gl_Position = a_position;\n'
++'}'
 
 Three.prototype.fragPoint = 'precision mediump float;\n'//?精度声明
   +'uniform vec4 u_fragcolor;\n'
@@ -197,6 +204,21 @@ Three.prototype.multiPoints = function(data) {
    }
    this.init();
    this.gl.drawArrays(this.gl[p], 0, n);
+}
+
+// 绘制三角形
+Three.prototype.triangle = function(data) {
+  var shader = null;
+  if(!(shader = initShaders(this.gl, this.singlePoint, this.fragPoint))) {
+    console.log('Failed to create shaders');
+    return;
+  }
+  if((n = initVertex(this.gl, data.ps)) < 0) {
+    console.log('Failed to set points in buffer');
+    return;
+  }
+  this.init();
+  this.gl.drawArrays(this.gl[t], 0, n);
 }
 // 事件监听器
 Three.prototype.on = function(type, listener) {
